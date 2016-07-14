@@ -1,0 +1,12 @@
+dependencies:
+  override:
+    - make cheeseshop
+
+test:
+  override:
+    - make test
+
+  post:
+    - make coverage-report
+    - make create-coverage-html
+    - mv htmlcov $CIRCLE_ARTIFACTS/coverage
