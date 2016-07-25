@@ -4,7 +4,7 @@ dependencies:
 
 test:
   override:
-    - make test
+    - bin/python ./runtests.py
 
   post:
     - make coverage-report
