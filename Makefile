@@ -33,7 +33,7 @@ else
 	@$(VENV) -q . >/dev/null
 endif
 
-flake8: ensure-venv-exists
+flake8:
 	@$(ACTIVATE_VENV) && flake8 cielo24_utils
 
 isort:
@@ -45,5 +45,5 @@ isort-check:
 nuke-venv:
 	@rm -rf bin/ include/ lib/ local/
 
-test: ensure-venv-exists flake8 isort-check
-	@$(ACTIVATE_VENV) && py.test --cov-config .coveragerc --cov=cielo24_utils cielo24_utils/
+test: flake8 isort-check
+	@$(ACTIVATE_VENV) && py.test --cov-config .coveragerc --cov-report term-missing --cov=cielo24_utils cielo24_utils/
