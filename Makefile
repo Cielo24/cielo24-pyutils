@@ -12,7 +12,8 @@ VENV := $(shell which virtualenv 2>/dev/null)
 	isort \
 	isort-check \
 	nuke-venv \
-	test
+	test \
+	test-no-capture
 
 
 bootstrap: nuke-venv ensure-venv-exists cheeseshop
@@ -47,3 +48,6 @@ nuke-venv:
 
 test: flake8 isort-check
 	@$(ACTIVATE_VENV) && py.test --cov-config .coveragerc --cov-report term-missing --cov=cielo24_utils cielo24_utils/
+
+test-no-capture: ensure-venv-exists flake8 isort-check
+	@$(ACTIVATE_VENV) && py.test -s --cov-config .coveragerc --cov=cielo24_utils cielo24_utils/
