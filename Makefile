@@ -40,7 +40,7 @@ isort:
 	@$(ACTIVATE_VENV) && isort -rc cielo24_utils
 
 isort-check:
-	@$(ACTIVATE_VENV) && isort -rc cielo24_utils -c -vb
+	@$(ACTIVATE_VENV) && isort -rc cielo24_utils -c -vb --diff --verbose
 
 nuke-venv:
 	@rm -rf bin/ include/ lib/ local/
