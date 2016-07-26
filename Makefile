@@ -12,7 +12,8 @@ VENV := $(shell which virtualenv 2>/dev/null)
 	isort \
 	isort-check \
 	nuke-venv \
-	test
+	test \
+	test-no-capture
 
 
 bootstrap: nuke-venv ensure-venv-exists cheeseshop
@@ -33,17 +34,20 @@ else
 	@$(VENV) -q . >/dev/null
 endif
 
-flake8: ensure-venv-exists
+flake8:
 	@$(ACTIVATE_VENV) && flake8 cielo24_utils
 
 isort:
 	@$(ACTIVATE_VENV) && isort -rc cielo24_utils
 
 isort-check:
-	@$(ACTIVATE_VENV) && isort -rc cielo24_utils -c -vb
+	@$(ACTIVATE_VENV) && isort -rc cielo24_utils -c -vb --diff --verbose
 
 nuke-venv:
 	@rm -rf bin/ include/ lib/ local/
 
-test: ensure-venv-exists flake8 isort-check
-	@$(ACTIVATE_VENV) && py.test --cov-config .coveragerc --cov=cielo24_utils cielo24_utils/
+test: flake8 isort-check
+	@$(ACTIVATE_VENV) && py.test --cov-config .coveragerc --cov-report term-missing --cov=cielo24_utils cielo24_utils/
+
+test-no-capture: ensure-venv-exists flake8 isort-check
+	@$(ACTIVATE_VENV) && py.test -s --cov-config .coveragerc --cov=cielo24_utils cielo24_utils/
