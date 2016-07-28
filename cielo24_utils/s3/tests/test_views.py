@@ -11,23 +11,32 @@ from ..views import S3TemporaryUrlBaseView
 
 class S3MissingCredentialsView(S3TemporaryUrlBaseView):
     bucket = 'py-test-dev'
+    content_type = 'text/csv'
 
 
 class S3TempUrlView(S3TemporaryUrlBaseView):
     access_key = 'AcCeSsKey'
     secret_key = 'SeCrEtKeY'
     bucket = 'py-test-dev'
+    content_type = 'text/csv'
 
 
 class S3MissingBucketView(S3TemporaryUrlBaseView):
     access_key = 'AcCeSsKey'
     secret_key = 'SeCrEtKeY'
+    content_type = 'text/csv'
+
+
+class S3MissingContentTypeView(S3TemporaryUrlBaseView):
+    access_key = 'AcCeSsKey'
+    secret_key = 'SeCrEtKeY'
+    bucket = 'py-test-dev'
 
 
 class S3CustomKeyTempUrlView(S3TempUrlView):
 
-    def make_key(self, key):
-        return key + 'custom'
+    def make_key(self, key, file_name):
+        return key + 'custom' + file_name
 
 
 class S3TempUrlBaseTest(APITestCase):
@@ -57,6 +66,12 @@ class S3TempUrlBaseTest(APITestCase):
         with self.assertRaises(NotImplementedError):
             S3MissingCredentialsView.as_view()(request)
 
+    def test_missing_content_type(self):
+        request = self.factory.post('/', format='json')
+
+        with self.assertRaises(NotImplementedError):
+            S3MissingContentTypeView.as_view()(request)
+
     @pytest.mark.django_db
     def test_missing_key_post(self):
         user = User.objects.create_user(self.username, self.password)
@@ -68,10 +83,22 @@ class S3TempUrlBaseTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @pytest.mark.django_db
+    def test_missing_file_name_post(self):
+        user = User.objects.create_user(self.username, self.password)
+        request = self.factory.post('/', {'bucket_key': 'test-key'}, format='json')
+        force_authenticate(request, user=user)
+
+        response = self.view(request)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @pytest.mark.django_db
     def test_post_ok(self):
         key = 'test-key'
         user = User.objects.create_user(self.username, self.password)
-        request = self.factory.post('/', {'bucket_key': key}, format='json')
+        request = self.factory.post('/',
+                                    {'bucket_key': key, 'file_name': 'asd.csv'},
+                                    format='json')
         force_authenticate(request, user=user)
 
         response = self.view(request)
@@ -83,13 +110,16 @@ class S3TempUrlBaseTest(APITestCase):
     @pytest.mark.django_db
     def test_post_ok_custom_key(self):
         key = 'test-key'
+        file_name = 'asd.csv'
         view = S3CustomKeyTempUrlView.as_view()
         user = User.objects.create_user(self.username, self.password)
-        request = self.factory.post('/', {'bucket_key': key}, format='json')
+        request = self.factory.post('/',
+                                    {'bucket_key': key, 'file_name': 'asd.csv'},
+                                    format='json')
         force_authenticate(request, user=user)
 
         response = view(request)
         response.render()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn(key + 'custom', response.content)
+        self.assertIn(key + 'custom' + file_name, response.content)
