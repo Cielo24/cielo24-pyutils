@@ -44,20 +44,24 @@ class S3TemporaryUrlBaseView(APIView):
 
         super(S3TemporaryUrlBaseView, self).__init__(**kwargs)
 
-    def make_key(self, key):
+    def make_key(self, key, file_name):
         """
         Method to override to provide a custom way to forge a unique
         key for the upload.
         """
-        return key
+        return key + '/' + file_name
 
     def post(self, request):
         client_key = request.data.get('bucket_key')
+        file_name = request.data.get('file_name')
 
         if not client_key:
             return Response({'bad_request': 'missing_key'}, status.HTTP_400_BAD_REQUEST)
 
-        key = self.make_key(client_key)
+        if not file_name:
+            return Response({'bad_request': 'missing_file_name'}, status.HTTP_400_BAD_REQUEST)
+
+        key = self.make_key(client_key, file_name)
         temp_url = self.client.generate_presigned_url(
             'put_object',
             Params={'Bucket': self.bucket,
