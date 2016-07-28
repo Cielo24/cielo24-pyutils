@@ -11,17 +11,26 @@ from ..views import S3TemporaryUrlBaseView
 
 class S3MissingCredentialsView(S3TemporaryUrlBaseView):
     bucket = 'py-test-dev'
+    content_type = 'text/csv'
 
 
 class S3TempUrlView(S3TemporaryUrlBaseView):
     access_key = 'AcCeSsKey'
     secret_key = 'SeCrEtKeY'
     bucket = 'py-test-dev'
+    content_type = 'text/csv'
 
 
 class S3MissingBucketView(S3TemporaryUrlBaseView):
     access_key = 'AcCeSsKey'
     secret_key = 'SeCrEtKeY'
+    content_type = 'text/csv'
+
+
+class S3MissingContentTypeView(S3TemporaryUrlBaseView):
+    access_key = 'AcCeSsKey'
+    secret_key = 'SeCrEtKeY'
+    bucket = 'py-test-dev'
 
 
 class S3CustomKeyTempUrlView(S3TempUrlView):
@@ -56,6 +65,12 @@ class S3TempUrlBaseTest(APITestCase):
 
         with self.assertRaises(NotImplementedError):
             S3MissingCredentialsView.as_view()(request)
+
+    def test_missing_content_type(self):
+        request = self.factory.post('/', format='json')
+
+        with self.assertRaises(NotImplementedError):
+            S3MissingContentTypeView.as_view()(request)
 
     @pytest.mark.django_db
     def test_missing_key_post(self):

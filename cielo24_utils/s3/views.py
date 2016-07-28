@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 class S3TemporaryUrlBaseView(APIView):
     access_key = None
     secret_key = None
+    content_type = None
     expiration = 3600
     s3_method = 'PUT'
     bucket = None
@@ -29,6 +30,12 @@ class S3TemporaryUrlBaseView(APIView):
             raise NotImplementedError(
                 'You must provide a bucket name to this class in order to '
                 'generate urls for upload.'
+            )
+
+        if not self.content_type:
+            raise NotImplementedError(
+                'You must provide a content_type for this class otherwise '
+                'you won\'t be able to upload files to the bucket.'
             )
 
         self.client = boto3.client('s3',
@@ -54,7 +61,8 @@ class S3TemporaryUrlBaseView(APIView):
         temp_url = self.client.generate_presigned_url(
             'put_object',
             Params={'Bucket': self.bucket,
-                    'Key': key},
+                    'Key': key,
+                    'ContentType': self.content_type},
             ExpiresIn=self.expiration,
             HttpMethod=self.s3_method
         )
